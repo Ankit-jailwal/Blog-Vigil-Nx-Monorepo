@@ -1,0 +1,61 @@
+{
+  "name": "article-assignment",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/article-assignment/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/article-assignment",
+        "main": "apps/article-assignment/src/main.ts",
+        "tsConfig": "apps/article-assignment/tsconfig.app.json",
+        "assets": [
+          "apps/article-assignment/src/assets"
+        ],
+        "webpackConfig": "apps/article-assignment/webpack.config.js"
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "article-assignment:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "article-assignment:build:development"
+        },
+        "production": {
+          "buildTarget": "article-assignment:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "jestConfig": "apps/article-assignment/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}
