@@ -1,0 +1,53 @@
+{
+  "name": "comment",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/comment/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/comment",
+        "main": "apps/comment/src/main.ts",
+        "tsConfig": "apps/comment/tsconfig.app.json",
+        "assets": ["apps/comment/src/assets"],
+        "webpackConfig": "apps/comment/webpack.config.js"
+      },
+      "configurations": {
+        "development": {},
+        "production": {}
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "comment:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "comment:build:development"
+        },
+        "production": {
+          "buildTarget": "comment:build:production"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/comment/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}

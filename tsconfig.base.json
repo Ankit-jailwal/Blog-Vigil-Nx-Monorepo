@@ -14,7 +14,15 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@article-workspace/auth": ["libs/auth/src/index.ts"],
+      "@article-workspace/authenticate": ["libs/authenticate/src/index.ts"],
+      "@article-workspace/authentication": ["libs/authentication/src/index.ts"],
+      "@article-workspace/data": ["libs/data/src/index.ts"],
+      "@article-workspace/https": ["libs/https/src/index.ts"],
+      "@article-workspace/logs": ["libs/logs/src/index.ts"],
+      "@article-workspace/token": ["libs/token/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
