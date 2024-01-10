@@ -11,6 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
+        "generatePackageJson": true,
         "outputPath": "dist/apps/auth",
         "main": "apps/auth/src/main.ts",
         "tsConfig": "apps/auth/tsconfig.app.json",

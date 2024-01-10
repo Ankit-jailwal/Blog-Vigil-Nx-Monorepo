@@ -11,7 +11,7 @@ import { AuthenticateModule } from '@article-workspace/authenticate';
   imports: [
     AuthenticateModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    MongooseModule.forRoot('mongodb://localhost:27017', {
+    MongooseModule.forRoot('mongodb://mongodb', {
       dbName: 'articledbnx',
     }),
     MongooseModule.forFeature([{ name: 'Article', schema: ArticleSchema }]),

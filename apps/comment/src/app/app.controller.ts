@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, UseGuards} from '@nestjs/common';
 
 import { AppService } from './app.service';
 import { CreateCommentDto, Article } from '@article-workspace/data';
@@ -16,4 +16,11 @@ export class AppController {
   ): Promise<Article> {
     return this.commentService.addCommentToArticle(articleId, comment);
   }
+
+  // @Get()
+  // async getAllArticles(
+  //   @Query() query: { page?: number;},
+  // ): Promise<Article[]> {
+  //   return this.commentService.find(query);
+  // }
 }

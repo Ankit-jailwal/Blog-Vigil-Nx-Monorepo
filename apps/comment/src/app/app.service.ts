@@ -36,4 +36,20 @@ export class AppService {
       throw new Error(`Failed to add comment: ${error.message}`);
     }
   }
+
+  // async find(query: {
+  //   page?: number;
+  // }): Promise<Comment[]> {
+  //   const resPerPage = 2;
+  //   const currentPage = query.page ? query.page : 1;
+  //   const skip = resPerPage * (currentPage - 1);
+
+  //   const comments = await this.articleModel
+  //     .find()
+  //     .limit(resPerPage)
+  //     .skip(skip)
+  //     .exec();
+
+  //   return comments;
+  // }
 }

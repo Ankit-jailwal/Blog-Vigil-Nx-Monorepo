@@ -11,6 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
+        "generatePackageJson": true,
         "outputPath": "dist/apps/comment",
         "main": "apps/comment/src/main.ts",
         "tsConfig": "apps/comment/tsconfig.app.json",

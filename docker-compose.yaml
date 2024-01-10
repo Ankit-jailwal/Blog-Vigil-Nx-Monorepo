@@ -1,0 +1,72 @@
+version: '4'
+services:
+  article:
+    container_name: article
+    build:
+      context: ./
+      cache_from:
+        - my-base-image:nx-base
+      dockerfile: ./apps/article/Dockerfile
+      args:
+        NODE_ENV: "development"
+        BUILD_FLAG: ""
+    image: article:nx-dev
+    ports:
+      - 3010:3010
+    environment:
+      NODE_ENV: "development"
+      PORT: 3010
+    restart: on-failure
+    depends_on:
+      - mongodb
+  
+  comment:
+    container_name: comment
+    build:
+      context: ./
+      cache_from:
+        - my-base-image:nx-base
+      dockerfile: ./apps/comment/Dockerfile
+      args:
+        NODE_ENV: "development"
+        BUILD_FLAG: ""
+    image: comment:nx-dev
+    ports:
+      - 3030:3030
+    environment:
+      NODE_ENV: "development"
+      PORT: 3030
+    restart: on-failure
+    depends_on:
+      - mongodb
+
+  auth:
+    container_name: auth
+    build:
+      context: ./
+      cache_from:
+        - my-base-image:nx-base
+      dockerfile: ./apps/auth/Dockerfile
+      args:
+        NODE_ENV: "development"
+        BUILD_FLAG: ""
+    image: auth:nx-dev
+    ports:
+      - 3020:3020
+    environment:
+      NODE_ENV: "development"
+      PORT: 3020
+    restart: on-failure
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongodb_data:/data/db
+  
+
+volumes:
+  mongodb_data:

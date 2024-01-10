@@ -16,7 +16,7 @@ import { PassportModule } from '@nestjs/passport';
       isGlobal: true,
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    MongooseModule.forRoot('mongodb://localhost:27017', {
+    MongooseModule.forRoot('mongodb://mongodb', {
       dbName: 'articledbnx',
     }),
     JwtModule.registerAsync({

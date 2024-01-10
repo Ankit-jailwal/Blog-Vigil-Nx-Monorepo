@@ -1,0 +1,70 @@
+{
+  "version": "6.0",
+  "nxVersion": "17.2.8",
+  "deps": {},
+  "pathMappings": {},
+  "nxJsonPlugins": [],
+  "fileMap": {
+    "projectFileMap": {
+      "article": [
+        {
+          "file": ".eslintrc.json",
+          "hash": "13800677001662881425"
+        },
+        {
+          "file": "Dockerfile",
+          "hash": "4709294567455180283"
+        },
+        {
+          "file": "Dockerfile.article",
+          "hash": "16398008732427069795"
+        },
+        {
+          "file": "jest.config.ts",
+          "hash": "4052314649164242772"
+        },
+        {
+          "file": "project.json",
+          "hash": "5360589600434742075"
+        },
+        {
+          "file": "src/app/app.controller.ts",
+          "hash": "4791144998414457144"
+        },
+        {
+          "file": "src/app/app.module.ts",
+          "hash": "2824044932737606821"
+        },
+        {
+          "file": "src/app/app.service.ts",
+          "hash": "15642762281831881321"
+        },
+        {
+          "file": "src/assets/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "src/main.ts",
+          "hash": "14853780315925876228"
+        },
+        {
+          "file": "tsconfig.app.json",
+          "hash": "3171572500325445971"
+        },
+        {
+          "file": "tsconfig.json",
+          "hash": "3490524966360018312"
+        },
+        {
+          "file": "tsconfig.spec.json",
+          "hash": "11550347367511341917"
+        },
+        {
+          "file": "webpack.config.js",
+          "hash": "5708803163266262522"
+        }
+      ]
+    },
+    "nonProjectFiles": []
+  }
+}

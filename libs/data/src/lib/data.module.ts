@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
-// import { CreateArticleDto } from './dto/create-article.dto';
-// import { UpdateArticleDto } from './dto/update-article.dto';
 import { Article, ArticleSchema } from './schema/article.schema';
-// import { LoginDto } from './dto/login.dto';
-// import { SignUpDto } from './dto/signup.dto';
 import { User, UserSchema } from './schema/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CommentSchema, Comment } from './schema/comment.schema';

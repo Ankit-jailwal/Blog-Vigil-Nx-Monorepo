@@ -28,7 +28,8 @@
         "{workspaceRoot}/jest.preset.js"
       ],
       "options": {
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "generatePackageJson": true
       },
       "configurations": {
         "ci": {

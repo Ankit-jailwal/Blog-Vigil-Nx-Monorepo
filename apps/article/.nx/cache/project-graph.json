@@ -1,0 +1,90 @@
+{
+  "nodes": {
+    "article": {
+      "name": "article",
+      "type": "app",
+      "data": {
+        "root": ".",
+        "name": "article",
+        "$schema": "../../node_modules/nx/schemas/project-schema.json",
+        "sourceRoot": "apps/article/src",
+        "projectType": "application",
+        "targets": {
+          "build": {
+            "executor": "@nx/webpack:webpack",
+            "outputs": [
+              "{options.outputPath}"
+            ],
+            "defaultConfiguration": "production",
+            "options": {
+              "target": "node",
+              "compiler": "tsc",
+              "generatePackageJson": true,
+              "outputPath": "dist/apps/article",
+              "main": "apps/article/src/main.ts",
+              "tsConfig": "apps/article/tsconfig.app.json",
+              "assets": [
+                "apps/article/src/assets"
+              ],
+              "webpackConfig": "apps/article/webpack.config.js"
+            },
+            "configurations": {
+              "development": {},
+              "production": {}
+            }
+          },
+          "serve": {
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+              "buildTarget": "article:build"
+            },
+            "configurations": {
+              "development": {
+                "buildTarget": "article:build:development"
+              },
+              "production": {
+                "buildTarget": "article:build:production"
+              }
+            }
+          },
+          "lint": {
+            "executor": "@nx/eslint:lint",
+            "outputs": [
+              "{options.outputFile}"
+            ],
+            "options": {},
+            "configurations": {}
+          },
+          "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": [
+              "{workspaceRoot}/coverage/{projectRoot}"
+            ],
+            "options": {
+              "jestConfig": "apps/article/jest.config.ts"
+            },
+            "configurations": {}
+          },
+          "docker-build": {
+            "dependsOn": [
+              "build"
+            ],
+            "executor": "nx:run-commands",
+            "options": {
+              "command": "docker build -f apps/article/Dockerfile . -t article"
+            },
+            "configurations": {}
+          }
+        },
+        "tags": [],
+        "implicitDependencies": []
+      }
+    }
+  },
+  "externalNodes": {},
+  "dependencies": {
+    "article": []
+  },
+  "version": "6.0"
+}

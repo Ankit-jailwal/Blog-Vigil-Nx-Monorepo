@@ -11,6 +11,7 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
+        "generatePackageJson": true,
         "outputPath": "dist/apps/article",
         "main": "apps/article/src/main.ts",
         "tsConfig": "apps/article/tsconfig.app.json",
@@ -47,6 +48,10 @@
       "options": {
         "jestConfig": "apps/article/jest.config.ts"
       }
+    },
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -f apps/article/Dockerfile . -t article"
     }
   },
   "tags": []
