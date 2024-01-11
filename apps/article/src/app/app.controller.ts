@@ -13,8 +13,8 @@ import {
 import { ArticleService } from './app.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Article } from '@article-workspace/data'
-import { CreateArticleDto } from '@article-workspace/data';
-import { UpdateArticleDto } from '@article-workspace/data';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Controller('article')
 export class ArticleController {

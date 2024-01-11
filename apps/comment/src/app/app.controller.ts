@@ -1,8 +1,10 @@
-import { Body, Controller, Param, Post, UseGuards} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards} from '@nestjs/common';
 
 import { AppService } from './app.service';
-import { CreateCommentDto, Article } from '@article-workspace/data';
+// import { Article } from '@article-workspace/data';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Comment } from '@article-workspace/data'
 
 @Controller()
 export class AppController {
@@ -13,14 +15,15 @@ export class AppController {
   async createComment(
     @Param('articleId') articleId: string,
     @Body() comment: CreateCommentDto,
-  ): Promise<Article> {
+  ): Promise<Comment> {
     return this.commentService.addCommentToArticle(articleId, comment);
   }
 
-  // @Get()
-  // async getAllArticles(
-  //   @Query() query: { page?: number;},
-  // ): Promise<Article[]> {
-  //   return this.commentService.find(query);
-  // }
+  @Get(':articleId/comment')
+  async getAllArticles(
+    @Param('articleId') articleId: string,
+    @Query() query: { page?: number;},
+  ): Promise<Comment[]> {
+    return this.commentService.findAll(articleId, query);
+  }
 }

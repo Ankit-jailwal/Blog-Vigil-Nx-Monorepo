@@ -1,5 +1,5 @@
 import { IsEmpty, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { User } from "@article-workspace/data";
+import { Article, User } from "@article-workspace/data";
 
 
 export class CreateCommentDto {
@@ -8,6 +8,9 @@ export class CreateCommentDto {
   
     @IsEmpty({ message: 'You cannot pass user id' })
     readonly user: User; 
+
+    @IsEmpty({ message: 'You cannot pass article id' })
+    readonly article: Article; 
   
     @IsNotEmpty()
     @IsString()

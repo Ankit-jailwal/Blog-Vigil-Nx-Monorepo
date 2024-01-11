@@ -8,12 +8,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Article } from '@article-workspace/data';
 import { User } from '@article-workspace/data';
+import { HttpsService } from '@article-workspace/https'
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectModel(Article.name)
     private articleModel: mongoose.Model<Article>,
+    private readonly httpService : HttpsService
   ) {}
 
   async findAll(query: {
@@ -44,7 +46,7 @@ export class ArticleService {
   async create(article: Article, user: User): Promise<Article> {
     console.log(article)
     try {
-      const data = Object.assign(article, { user: user._id });
+      const data = Object.assign(article, { user: user._id, author: user.name });
       const res = await this.articleModel.create(data);
       return res;
     } catch (error) {
@@ -64,6 +66,11 @@ export class ArticleService {
     if (!article) {
       throw new NotFoundException('Article not found.');
     }
+
+    const comments = await this.httpService.getAllComments(id);
+
+    if(comments)
+      return Object.assign(article, {comments: comments})
 
     return article;
   }
