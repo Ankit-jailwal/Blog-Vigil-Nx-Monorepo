@@ -69,6 +69,7 @@ export class ArticleService {
 
     const comments = await this.httpService.getAllComments(id);
 
+    console.log(comments)
     if(comments)
       return Object.assign(article, {comments: comments})
 
