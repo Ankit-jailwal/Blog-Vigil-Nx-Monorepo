@@ -3,10 +3,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 // import { AuthenticateModule } from '@article-workspace/authenticate'
-import { UserSchema } from '@article-workspace/data';
-import { JwtStrategy } from '@article-workspace/authenticate';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserSchema, getMongooseDbCongif } from '@article-workspace/data';
+import { JwtStrategy, getJwtConfig } from '@article-workspace/authenticate';
+// import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule} from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 
 @Module({
@@ -16,21 +16,8 @@ import { PassportModule } from '@nestjs/passport';
       isGlobal: true,
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    MongooseModule.forRoot('mongodb://mongodb', {
-      dbName: 'articledbnx',
-    }),
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        console.log(`jwt secret ${config.get<string>('JWT_SECRET')}`)
-        return {
-          secret: config.get<string>('JWT_SECRET'),
-          signOptions: {
-            expiresIn: config.get<string | number>('JWT_EXPIRES'),
-          },
-        };
-      },
-    }),
+    getMongooseDbCongif(),
+    getJwtConfig(),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     AuthModule,
   ],

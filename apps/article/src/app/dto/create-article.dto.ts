@@ -1,32 +1,26 @@
-// import {
-//   IsArray,
-//     IsEmpty,
-//     IsNotEmpty,
-//     IsOptional,
-//     IsString,
-//   } from 'class-validator';
-// import { CreateCommentDto } from './create-comment.dto';
-// import { User } from '../schema/user.schema';
+import {
+    IsEmpty,
+    IsNotEmpty,
+    IsString,
+  } from 'class-validator';
+import { User } from '@article-workspace/data';
 
-// export class CreateArticleDto {
-//     @IsNotEmpty()
-//     @IsString()
-//     readonly title: string;
+export class CreateArticleDto {
+    @IsNotEmpty()
+    @IsString()
+    readonly title: string;
 
-//     @IsNotEmpty()
-//     @IsString()
-//     readonly content: string;
+    @IsNotEmpty()
+    @IsString()
+    readonly content: string;
 
-//     @IsString()
-//     readonly image: string;
+    @IsString()
+    readonly image: string;
 
-//     @IsString()
-//     readonly author: string;
-    
-//     @IsOptional()
-//     @IsArray()
-//     readonly comments: CreateCommentDto[]
+    @IsEmpty({message: 'You cannot pass author name'})
+    @IsString()
+    readonly author: string;
 
-//     @IsEmpty({ message: 'You cannot pass user id' })
-//     readonly user: User
-// }
+    @IsEmpty({ message: 'You cannot pass user id' })
+    readonly user: User
+}

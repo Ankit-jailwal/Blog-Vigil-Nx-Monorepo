@@ -1,23 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ArticleService } from './app.service';
 import { ArticleController } from './app.controller';
-// import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ArticleSchema } from '@article-workspace/data';
+import { ArticleSchema, getMongooseDbCongif } from '@article-workspace/data';
 import { PassportModule } from '@nestjs/passport';
-import { AuthenticateModule } from '@article-workspace/authenticate'
+import { AuthenticateModule } from '@article-workspace/authenticate';
+import { HttpsService } from '@article-workspace/https';
+import { HttpsModule } from '@article-workspace/https';
 
 @Module({
   imports: [
     AuthenticateModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    MongooseModule.forRoot('mongodb://mongodb', {
-      dbName: 'articledbnx',
-    }),
+    getMongooseDbCongif(),
     MongooseModule.forFeature([{ name: 'Article', schema: ArticleSchema }]),
     ArticleModule,
+    HttpsModule,
   ],
   controllers: [ArticleController],
-  providers: [ArticleService],
+  providers: [ArticleService, HttpsService],
 })
 export class ArticleModule {}

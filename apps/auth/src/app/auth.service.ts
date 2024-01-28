@@ -3,7 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto, SignUpDto, User } from '@article-workspace/data'
+import { User } from '@article-workspace/data'
+import { LoginDto } from './dto/login.dto';
+import { SignUpDto } from './dto/signup.dto';
 
 @Injectable()
 export class AuthService {
