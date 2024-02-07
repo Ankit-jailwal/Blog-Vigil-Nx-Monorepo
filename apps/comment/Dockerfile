@@ -6,7 +6,7 @@ WORKDIR /app/builder
 COPY . .
 RUN npx nx build comment ${BUILD_FLAG}
 
-FROM my-base-image:nx-base
+FROM nx-image:nx-base
 
 WORKDIR /app
 COPY --from=builder /app/builder ./

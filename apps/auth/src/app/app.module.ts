@@ -4,7 +4,7 @@ import { AuthController } from './app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 // import { AuthenticateModule } from '@article-workspace/authenticate'
 import { UserSchema, getMongooseDbCongif } from '@article-workspace/data';
-import { JwtStrategy, getJwtConfig } from '@article-workspace/authenticate';
+import { JwtStrategy, getJwtAuthConfig } from '@article-workspace/authentication';
 // import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule} from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
@@ -17,7 +17,7 @@ import { PassportModule } from '@nestjs/passport';
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     getMongooseDbCongif(),
-    getJwtConfig(),
+    getJwtAuthConfig(),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     AuthModule,
   ],

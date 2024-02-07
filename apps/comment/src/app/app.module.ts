@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AppController } from './app.controller';
-import { AuthenticateModule } from '@article-workspace/authenticate'
+import { AuthenticationModule } from '@article-workspace/authentication'
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ArticleSchema, CommentSchema, getMongooseDbCongif } from '@article-workspace/data';
@@ -9,7 +9,7 @@ import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
-    AuthenticateModule,
+    AuthenticationModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     getMongooseDbCongif(),
     MongooseModule.forFeature([{ name: 'Comment', schema: CommentSchema }]),

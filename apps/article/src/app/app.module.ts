@@ -4,13 +4,12 @@ import { ArticleController } from './app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ArticleSchema, getMongooseDbCongif } from '@article-workspace/data';
 import { PassportModule } from '@nestjs/passport';
-import { AuthenticateModule } from '@article-workspace/authenticate';
-import { HttpsService } from '@article-workspace/https';
-import { HttpsModule } from '@article-workspace/https';
+import { HttpsModule, HttpsService } from '@article-workspace/https';
+import { AuthenticationModule } from '@article-workspace/authentication';
 
 @Module({
   imports: [
-    AuthenticateModule,
+    AuthenticationModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     getMongooseDbCongif(),
     MongooseModule.forFeature([{ name: 'Article', schema: ArticleSchema }]),
