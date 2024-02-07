@@ -14,6 +14,6 @@ export class AppController {
   onButtonClicked(@Body() body: any, @Req() req: any) {
     console.log('Button clicked: bodyy -> ', body);
     console.log('Button clicked: req -> ', req);
-    return 'Button click handled successfully';
+    return this.appService.handleSlackInteraction(body);
   }
 }

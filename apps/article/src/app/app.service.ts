@@ -39,7 +39,7 @@ export class ArticleService {
                   type: 'plain_text',
                   text: 'Verify',
                 },
-                action_id: 'verify_click', // This ID will be sent when button 1 is clicked // You can pass any additional data you need
+                action_id: 'verify_click',
               },
               {
                 type: 'button',
@@ -47,7 +47,7 @@ export class ArticleService {
                   type: 'plain_text',
                   text: 'Reject',
                 },
-                action_id: 'reject_click', // This ID will be sent when button 2 is clicked// You can pass any additional data you need
+                action_id: 'reject_click',
               },
             ],
           },
