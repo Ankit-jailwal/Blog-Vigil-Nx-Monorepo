@@ -28,7 +28,7 @@ export class ArticleController {
   }
 
   @Post()
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
   async createArticle(
     @Body()
     article: CreateArticleDto,

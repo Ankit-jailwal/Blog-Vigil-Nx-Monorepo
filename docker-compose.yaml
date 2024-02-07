@@ -5,7 +5,7 @@ services:
     build:
       context: ./
       cache_from:
-        - my-base-image:nx-base
+        - nx-image:nx-base
       dockerfile: ./apps/article/Dockerfile
       args:
         NODE_ENV: "development"
@@ -25,7 +25,7 @@ services:
     build:
       context: ./
       cache_from:
-        - my-base-image:nx-base
+        - nx-image:nx-base
       dockerfile: ./apps/comment/Dockerfile
       args:
         NODE_ENV: "development"
@@ -40,12 +40,30 @@ services:
     depends_on:
       - mongodb
 
+  # slack:
+  #   container_name: slack
+  #   build:
+  #     context: ./
+  #     cache_from:
+  #       - nx-image:nx-base
+  #     dockerfile: ./apps/slack/Dockerfile
+  #     args:
+  #       NODE_ENV: "development"
+  #       BUILD_FLAG: ""
+  #   image: auth:nx-dev
+  #   ports:
+  #     - 3040:3040
+  #   environment:
+  #     NODE_ENV: "development"
+  #     PORT: 3040
+  #   restart: on-failure     
+
   auth:
     container_name: auth
     build:
       context: ./
       cache_from:
-        - my-base-image:nx-base
+        - nx-image:nx-base
       dockerfile: ./apps/auth/Dockerfile
       args:
         NODE_ENV: "development"
