@@ -18,6 +18,7 @@
       "@article-workspace/authentication": ["libs/authentication/src/index.ts"],
       "@article-workspace/data": ["libs/data/src/index.ts"],
       "@article-workspace/enum": ["libs/enum/src/index.ts"],
+      "@article-workspace/env": ["libs/env/src/index.ts"],
       "@article-workspace/https": ["libs/https/src/index.ts"],
       "@article-workspace/logs": ["libs/logs/src/index.ts"],
       "@article-workspace/token": ["libs/token/src/index.ts"]

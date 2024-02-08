@@ -6,12 +6,14 @@ import { ArticleSchema, getMongooseDbCongif } from '@article-workspace/data';
 import { PassportModule } from '@nestjs/passport';
 import { HttpsModule, HttpsService } from '@article-workspace/https';
 import { AuthenticationModule } from '@article-workspace/authentication';
+import { getGlobalConfig } from '@article-workspace/env';
 
 @Module({
   imports: [
     AuthenticationModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     getMongooseDbCongif(),
+    getGlobalConfig(),
     MongooseModule.forFeature([{ name: 'Article', schema: ArticleSchema }]),
     ArticleModule,
     HttpsModule,

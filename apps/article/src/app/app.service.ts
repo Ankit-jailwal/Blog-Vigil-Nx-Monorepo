@@ -19,7 +19,7 @@ export class ArticleService {
     private articleModel: mongoose.Model<Article>,
     private readonly httpService : HttpsService
   ) {}
-  private readonly SLACK_ALERT = 'https://hooks.slack.com/services/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';
+  private readonly ARTICLE_SLACK_ALERT = process.env.ARTICLE_SLACK_ALERT;
 
   async sendSlackAlert(article: any) {
     const payload = {
@@ -90,7 +90,7 @@ export class ArticleService {
         }
       ]
     };
-    const res = await axios.post(this.SLACK_ALERT, payload);
+    const res = await axios.post(this.ARTICLE_SLACK_ALERT, payload);
     console.log("Response of slack webhook", res);
   }
 
