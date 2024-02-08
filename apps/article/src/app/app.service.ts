@@ -10,6 +10,7 @@ import { Article } from '@article-workspace/data';
 import { User } from '@article-workspace/data';
 import { HttpsService } from '@article-workspace/https'
 import axios from 'axios';
+import { ArticleStatus } from '@article-workspace/enum';
 
 @Injectable()
 export class ArticleService {
@@ -18,62 +19,39 @@ export class ArticleService {
     private articleModel: mongoose.Model<Article>,
     private readonly httpService : HttpsService
   ) {}
-  private readonly SLACK_ALERT = 'https://hooks.slack.com/services/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';
+  private readonly SLACK_ALERT = 'https://hooks.slack.com/services/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';
 
   async sendSlackAlert(article: any) {
     const payload = {
-      username: 'Artcle slack alert',
+      text: "New Paid Time Off request from Fred Enriquez",
       blocks: [
         {
-          type: 'section',
+          type: "header",
           text: {
-            type: 'mrkdwn',
-            text: `*Article created*: ${article.title}`,
-          },
-          accessory: {
-            type: 'actions',
-            elements: [
-              {
-                type: 'button',
-                text: {
-                  type: 'plain_text',
-                  text: 'Verify',
-                },
-                action_id: 'verify_click',
-              },
-              {
-                type: 'button',
-                text: {
-                  type: 'plain_text',
-                  text: 'Reject',
-                },
-                action_id: 'reject_click',
-              },
-            ],
-          },
+            type: "plain_text",
+            text: "Article created",
+            emoji: true
+          }
         },
         {
-          type: 'section',
+          type: "section",
           fields: [
             {
-              type: 'mrkdwn',
-              text: `*Content* : \n${article.content}`,
+              type: "mrkdwn",
+              text: `*Title:*\n ${article.title}`
             },
             {
-              type: 'mrkdwn',
-              text: `*Author* : \n${article.author}`,
-            },
-          ],
+              type: "mrkdwn",
+              text: `*Content:*\n ${article.content}`
+            }
+          ]
         },
         {
-          type: 'divider',
-        },
-        {
-          type: 'section',
+          type: "section",
           fields: [
             {
-              type: 'mrkdwn',
-              text: `*Created at* :\n${new Date().toLocaleTimeString([], {
+              type: "mrkdwn",
+              text: `*When:*\n${new Date().toLocaleTimeString([], {
                 day: 'numeric',
                 month: 'short',
                 year: 'numeric',
@@ -81,18 +59,38 @@ export class ArticleService {
                 minute: '2-digit',
                 second: '2-digit',
                 timeZone: 'Asia/Kolkata',
-              })}`,
+              })}`
+            }
+          ]
+        },
+        {
+          type: "actions",
+          elements: [
+            {
+              type: "button",
+              text: {
+                type: "plain_text",
+                emoji: true,
+                text: "Approve"
+              },
+              style: "primary",
+              value: "approve_button"
             },
             {
-              type: 'mrkdwn',
-              text: `*Created by* : ${article.user}`,
-            },
-          ],
-        },
-        
-      ],
+              type: "button",
+              text: {
+                type: "plain_text",
+                emoji: true,
+                text: "Reject"
+              },
+              style: "danger",
+              value: "reject_button"
+            }
+          ]
+        }
+      ]
     };
-    const res = axios.post(this.SLACK_ALERT, payload);
+    const res = await axios.post(this.SLACK_ALERT, payload);
     console.log("Response of slack webhook", res);
   }
 
@@ -125,7 +123,7 @@ export class ArticleService {
   async create(article: Article, user: User): Promise<Article> {
     console.log(article)
     try {
-      const data = Object.assign(article, { user: user._id, author: user.name });
+      const data = Object.assign(article, { user: user._id, author: user.name, status: ArticleStatus.UNVERIFIED });
       const res = await this.articleModel.create(data);
       console.log({res}, 'Sending slack alert via Webhook');
       await this.sendSlackAlert(res);
@@ -162,6 +160,20 @@ export class ArticleService {
       new: true,
       runValidators: true,
     });
+  }
+
+  async updateArticleStatus(id: string, status: string): Promise<Article | null> {
+    console.log("Status heree ",status);
+    try {
+      const article = await this.articleModel.findByIdAndUpdate(
+        id,
+        { status: status == 'verified' ? ArticleStatus.VERIFIED : ArticleStatus.REJECTED}
+      );
+      return article;
+    } catch (error) {
+      console.error("Error updating article status:", error);
+      return null;
+    }
   }
 
   async deleteArticle(articleId: string, userId: string): Promise<string> {

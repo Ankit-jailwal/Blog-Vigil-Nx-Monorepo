@@ -1,9 +1,11 @@
 import {
     IsEmpty,
+    IsEnum,
     IsNotEmpty,
     IsString,
   } from 'class-validator';
 import { User } from '@article-workspace/data';
+import { ArticleStatus } from '@article-workspace/enum';
 
 export class CreateArticleDto {
     @IsNotEmpty()
@@ -16,6 +18,9 @@ export class CreateArticleDto {
 
     @IsString()
     readonly image: string;
+
+    @IsEnum(ArticleStatus)
+    status: ArticleStatus
 
     @IsEmpty({message: 'You cannot pass author name'})
     @IsString()

@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -28,7 +30,7 @@ export class ArticleController {
   }
 
   @Post()
-  // @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard())
   async createArticle(
     @Body()
     article: CreateArticleDto,
@@ -60,6 +62,24 @@ export class ArticleController {
       throw new Error('User not authenticated');
     }
     return this.articleService.updateById(id, article);
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard())
+  async updateStatus(
+    @Param('id')
+    id: string,
+    @Body()
+    body: any,
+    @Req() req,
+  ): Promise<Article> {
+    const uid = req.user?.id;
+
+    if(!uid) {
+      throw new BadRequestException('User not authenticated');
+    }
+
+    return this.articleService.updateArticleStatus(id, body.status);
   }
 
   @Delete(':id')
