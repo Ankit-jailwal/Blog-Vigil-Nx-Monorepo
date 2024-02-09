@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@article-workspace/data'
 import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/signup.dto';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -49,5 +50,31 @@ export class AuthService {
     const token = this.jwtService.sign({ id: user._id });
 
     return { token };
+  }
+
+  async slackOAuth(code: string): Promise<{ token: string }> {
+    try {
+      const response = await axios.post(process.env.SLACK_OAUTH2_URI, {
+        client_id: process.env.SLACK_CLIENT_ID,
+        client_secret: process.env.SLACK_CLIENT_SECRET,
+        code,
+      });
+  
+      const { ok, user } = response.data;
+      if (!ok) {
+        throw new Error('Failed to authenticate with Slack');
+      }
+  
+      const existingUser = await this.userModel.findOne({ email: user.email });
+      if (!existingUser) {
+        throw new UnauthorizedException('User not found');
+      }
+  
+      const token = this.jwtService.sign({ id: existingUser._id });
+  
+      return { token };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to authenticate with Slack');
+    }
   }
 }

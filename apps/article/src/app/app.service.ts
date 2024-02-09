@@ -23,7 +23,7 @@ export class ArticleService {
 
   async sendSlackAlert(article: any) {
     const payload = {
-      text: "New Paid Time Off request from Fred Enriquez",
+      text: "Article creation slack alert",
       blocks: [
         {
           type: "header",
@@ -74,7 +74,8 @@ export class ArticleService {
                 text: "Approve"
               },
               style: "primary",
-              value: "approve_button"
+              action_id: "approve_button",
+              value: JSON.stringify({ user: article.user,  id: article._id }),
             },
             {
               type: "button",
@@ -84,16 +85,43 @@ export class ArticleService {
                 text: "Reject"
               },
               style: "danger",
-              value: "reject_button"
+              action_id: "reject_button",
+              value: JSON.stringify({ user: article.user,  id: article._id }) ,
             }
           ]
         }
       ]
     };
-    const res = await axios.post(this.ARTICLE_SLACK_ALERT, payload);
-    console.log("Response of slack webhook", res);
+    try {
+      const res = await axios.post(this.ARTICLE_SLACK_ALERT, payload);
+      console.log("Response of slack webhook", res);
+    } catch (error) {
+      console.log("Could not send slack alert", {error});
+    }
   }
 
+  async sendSlackUpdateAlert() {
+
+    const updatedStatusPayload = {
+      text: 'Updated status message', 
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*Approved :white_check_mark:*'
+          }
+        }
+      ]
+    };
+
+    try {
+      const res = await axios.post(this.ARTICLE_SLACK_ALERT, updatedStatusPayload);
+      console.log("Response of slack webhook", res);
+    } catch (error) {
+      console.log("Could not send slack alert", {error});
+    }
+  }
 
   async findAll(query: {
     page?: number;
@@ -169,6 +197,8 @@ export class ArticleService {
         id,
         { status: status == 'verified' ? ArticleStatus.VERIFIED : ArticleStatus.REJECTED}
       );
+
+      // await this.sendSlackUpdateAlert()
       return article;
     } catch (error) {
       console.error("Error updating article status:", error);
