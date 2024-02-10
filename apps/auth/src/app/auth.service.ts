@@ -7,6 +7,7 @@ import { User } from '@article-workspace/data'
 import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/signup.dto';
 import axios from 'axios';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -52,26 +53,64 @@ export class AuthService {
     return { token };
   }
 
-  async slackOAuth(code: string): Promise<{ token: string }> {
+  async getSlackUserDetails(accessToken) {
+    const slackUrl = 'https://slack.com/api/users.identity';
+    const headers = {
+        'Authorization': `Bearer ${accessToken}`
+    };
+
     try {
-      const response = await axios.post(process.env.SLACK_OAUTH2_URI, {
-        client_id: process.env.SLACK_CLIENT_ID,
-        client_secret: process.env.SLACK_CLIENT_SECRET,
-        code,
-      });
-  
-      const { ok, user } = response.data;
+        const response = await axios.get(slackUrl, { headers });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user details from Slack:', error);
+        throw error;
+    }
+};
+
+  async slackOAuth(code: string): Promise<{ token: string }> {
+    console.log(code);
+    try {
+      const slackUrl = `https://slack.com/api/openid.connect.token`;
+      const client_id = process.env.SLACK_CLIENT_ID;
+      const client_secret = process.env.SLACK_CLIENT_SECRET;
+      const details = {
+          code,
+          client_id,
+          client_secret
+      }
+      const formBody = Object.entries(details)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+      
+      const _headers = {
+          'Content-Type': 'application/x-www-form-urlencoded'
+      };
+      
+      const config = {
+          method: 'POST',
+          url: slackUrl,
+          data: formBody,
+          headers: _headers
+      };
+      const response = await axios(config);
+      console.log(response.data);
+      const { ok, id_token } = response.data;
+      console.log(ok);
       if (!ok) {
         throw new Error('Failed to authenticate with Slack');
       }
-  
-      const existingUser = await this.userModel.findOne({ email: user.email });
+      console.log(id_token);
+      const { email } = await jwt.decode(id_token) as { email: string };
+
+      const existingUser = await this.userModel.findOne({ email: email });
       if (!existingUser) {
         throw new UnauthorizedException('User not found');
       }
   
       const token = this.jwtService.sign({ id: existingUser._id });
-  
+      
+      console.log(token);
       return { token };
     } catch (error) {
       throw new UnauthorizedException('Failed to authenticate with Slack');

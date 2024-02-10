@@ -35,15 +35,29 @@ export class AppService {
 
     return blocks;
   }
+
   async handleSlackInteraction(payload) {
     const data = JSON.parse(payload.payload);
     const action = JSON.parse(data.actions[0].value);
     const articleID = action.id;
     const actionID = data.actions[0].action_id;
+    const slackOpenIdUrl = `${process.env.SLACK_OPENID_BASE}response_type=${process.env.SLACK_RESPONSE_TYPE}&client_id=${process.env.SLACK_CLIENT_ID}&redirect_uri=${process.env.SLACK_REDIRECT_URI}&scope=${process.env.SLACK_SCOPE}`
+    console.log(slackOpenIdUrl);
+    const res = await axios.get(slackOpenIdUrl);
 
+    console.log("Response from redirect ",res);
     try {
-      const res = axios.patch(this.ARTICLE_SERVICE + `/${articleID}`, {
-        status: 'verified',
+      let status;
+      if(actionID == 'approve_button')
+         status = ArticleStatus.VERIFIED;
+      else if(actionID == 'reject_button')
+        status = ArticleStatus.REJECTED;
+      else 
+        throw new BadRequestException('Unknown article status');
+
+      const res = await axios.patch(this.ARTICLE_SERVICE + `/${articleID}`, 
+      {
+        status: status,
       });
       if (!res) throw new BadRequestException('Cannot update article status');
 

@@ -8,6 +8,7 @@ import { JwtStrategy, getJwtAuthConfig } from '@article-workspace/authentication
 // import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule} from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
+import { getGlobalConfig } from '@article-workspace/env';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PassportModule } from '@nestjs/passport';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     getMongooseDbCongif(),
     getJwtAuthConfig(),
+    getGlobalConfig(),
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     AuthModule,
   ],

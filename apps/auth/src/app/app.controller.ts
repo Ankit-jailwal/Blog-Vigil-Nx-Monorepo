@@ -17,9 +17,9 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Get('slack/callback')
+  @Get('/slack/callback')
   async slackCallback(@Query('code') code: string) {
-    await this.authService.slackOAuth(code);
-    return { message: 'Authorization successful' };
+    console.log("Temp code: ", code);
+    return await this.authService.slackOAuth(code);
   }
 }
