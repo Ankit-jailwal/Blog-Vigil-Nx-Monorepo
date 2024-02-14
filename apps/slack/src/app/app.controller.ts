@@ -12,6 +12,11 @@ export class AppController {
 
   @Post('button')
   onButtonClicked(@Body() body: any, @Req() req: any) {
-    return this.appService.handleSlackInteraction(body);
+    return this.appService.handleSlackInteraction(body ,req);
+  }
+
+  @Post('/event')
+  onEventTriggered(@Req() req: any) {
+      return this.appService.handleSlackEvents(req.body);
   }
 }

@@ -1,4 +1,4 @@
-import { Token } from '@article-workspace/data';
+import { SlackUser, Token } from '@article-workspace/data';
 import { ArticleStatus } from '@article-workspace/enum';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,7 +9,9 @@ import mongoose from 'mongoose';
 export class AppService {
   constructor(
     @InjectModel(Token.name)
-    private tokenModel: mongoose.Model<Token>
+    private tokenModel: mongoose.Model<Token>,
+    @InjectModel(SlackUser.name)
+    private slackUserModel: mongoose.Model<SlackUser>
   ) {}
 
   private readonly ARTICLE_SERVICE = process.env.ARTICLE_SERVICE;
@@ -28,18 +30,21 @@ export class AppService {
         ? ArticleStatus.VERIFIED + ' :white_check_mark:'
         : ArticleStatus.REJECTED + ' :x:'
     }`;
-    blocks[2].fields[0].text = `*Updated at:*\n${new Date().toLocaleTimeString([], {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZone: 'Asia/Kolkata',
-    })}`;
+    blocks[2].fields[0].text = `*Updated at:*\n${new Date().toLocaleTimeString(
+      [],
+      {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Asia/Kolkata',
+      }
+    )}`;
     blocks[2].fields.push({
-      type: "mrkdwn",
-      text: `*Updated by:*\n <@${uid}>`
+      type: 'mrkdwn',
+      text: `*Updated by:*\n <@${uid}>`,
     });
     blocks.splice(3, 1);
     return blocks;
@@ -51,7 +56,54 @@ export class AppService {
     console.log(response);
   }
 
-  private async updateMessage(blocks: any, responseUrl: string, message: string = 'Article Status Updated') {
+  async handleSlackEvents(eventData: any) {
+    if (
+      eventData.event.type === 'member_joined_channel' &&
+      eventData.event.channel == process.env.CHANNEL_ID
+    ) {
+      const userId = eventData.event.user;
+      const channelId = eventData.event.channel;
+
+      // const res = await this.slackUserModel.create({
+      //   slackId: userId,
+      //   email: null,
+      //   channelId: channelId,
+      //   active: true,
+      // });
+
+      if (!res) {
+        throw new BadRequestException('Could not add slack user info');
+      }
+
+      console.log(`User ${userId} joined channel ${channelId}`);
+      return true;
+    } else if (
+      eventData.event.type === 'member_left_channel' &&
+      eventData.event.channel == process.env.CHANNEL_ID
+    ) {
+      const userId = eventData.event.user;
+      const channelId = eventData.event.channel;
+      const res = await this.slackUserModel.findOneAndUpdate(
+        { slackId: userId },
+        { active: false },
+        { new: true, upsert: false } 
+      );
+
+      if (!res) {
+        throw new BadRequestException('Could not delete slack user info');
+      }
+      console.log(`User ${userId} left channel ${channelId}`);
+      return true;
+    }
+
+    return true;
+  }
+
+  private async updateMessage(
+    blocks: any,
+    responseUrl: string,
+    message: string = 'Article Status Updated'
+  ) {
     const response = await axios.post(responseUrl, {
       replace_original: true,
       blocks: blocks,
@@ -74,18 +126,33 @@ export class AppService {
       else if (actionID === 'reject_button') status = ArticleStatus.REJECTED;
       else throw new BadRequestException('Unknown article status');
 
-      const userSecret = await this.tokenModel.findOne({
+      const slackUser = await this.slackUserModel.findOne({
         slackid: data.user.id,
       });
 
-      if (!userSecret) {
+      if(!slackUser) {
+        console.log("User not found");
         const blocks = await this.getAuthBlocks(data);
         await this.updateMessage(blocks, data.response_url);
         return true;
       }
 
+      let _userSecret;
+      if (slackUser.email && slackUser.active && slackUser.channelId == data.container.channel_id) {
+           const userPayload = {
+            payload: data,
+            request: req
+           }
+          _userSecret = await axios.post(`${process.env.AUTH_SERVICE}/slack/verify`, {
+            data: userPayload,
+          });
+
+          if(!_userSecret?.token)
+              throw new BadRequestException('Could verify signature');
+      }
+
       const headers = {
-        Authorization: `Bearer ${userSecret.token}`,
+        Authorization: `Bearer ${_userSecret.token}`,
         'Content-Type': 'application/json',
       };
 

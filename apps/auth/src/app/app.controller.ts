@@ -22,4 +22,10 @@ export class AuthController {
     console.log("Temp code: ", code);
     return await this.authService.slackOAuth(code);
   }
+
+  @Post('/slack/verify')
+  async verifySlackRequest(@Body() payload: any) {
+    console.log("Verification payload ",payload);
+    return this.authService.slackRequestVerification(payload.request, payload.metadata);
+  }
 }

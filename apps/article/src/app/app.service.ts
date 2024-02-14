@@ -20,7 +20,6 @@ export class ArticleService {
     private readonly httpService : HttpsService
   ) {}
   private readonly ARTICLE_SLACK_ALERT = process.env.ARTICLE_SLACK_ALERT;
-  private readonly  slackOpenIdUrl = `${process.env.SLACK_OPENID_BASE}response_type=${process.env.SLACK_RESPONSE_TYPE}&client_id=${process.env.SLACK_CLIENT_ID}&redirect_uri=${process.env.SLACK_REDIRECT_URI}&scope=${process.env.SLACK_SCOPE}`
   async sendSlackAlert(article: any) {
     const payload = {
       text: "Article creation slack alert",
