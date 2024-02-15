@@ -4,6 +4,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import mongoose from 'mongoose';
+import * as crypto from 'crypto';
+import { slackRequestVerification } from '@article-workspace/authentication';
 
 @Injectable()
 export class AppService {
@@ -56,23 +58,28 @@ export class AppService {
     console.log(response);
   }
 
-  async handleSlackEvents(eventData: any) {
+  async handleSlackEvents(event: any) {
     if (
-      eventData.event.type === 'member_joined_channel' &&
-      eventData.event.channel == process.env.CHANNEL_ID
+      event.event.type === 'member_joined_channel' &&
+      event.event.channel == process.env.CHANNEL_ID
     ) {
-      const userId = eventData.event.user;
-      const channelId = eventData.event.channel;
+      const userId = event.event.user;
+      const channelId = event.event.channel;
 
+      const existingUser = this.slackUserModel.findOne({
+        slackId: event.slackId
+      });
 
+      if(existingUser)
+        
       console.log(`User ${userId} joined channel ${channelId}`);
       return true;
     } else if (
-      eventData.event.type === 'member_left_channel' &&
-      eventData.event.channel == process.env.CHANNEL_ID
+      event.event.type === 'member_left_channel' &&
+      event.event.channel == process.env.CHANNEL_ID
     ) {
-      const userId = eventData.event.user;
-      const channelId = eventData.event.channel;
+      const userId = event.event.user;
+      const channelId = event.event.channel;
       const res = await this.slackUserModel.findOneAndUpdate(
         { slackId: userId },
         { active: false },
@@ -102,11 +109,31 @@ export class AppService {
     console.log('Unique identifier for response url', response);
   }
 
+  async testThreadTs(payload: any, req: any) {
+    // const res = await this.verifySignature(req);
+    // console.log(res);
+    // return true;
+    const data = JSON.parse(payload.payload);
+    const action = JSON.parse(data.actions[0].value);
+    const actionID = data.actions[0].action_id;
+    const button = data.actions[0];
+    await this.threadMessage(`Hey <!${data.user.id}>, testing thread message with ${data.container.action_ts}`, data.response_url, data.message.edited.ts);
+  }
+
   async handleSlackInteraction(payload: any, req: any) {
+    const verificationStatus = await slackRequestVerification(payload ,req);
+
+    if(!verificationStatus) {
+      throw new BadRequestException('Invalid request');
+    }
     const data = JSON.parse(payload.payload);
     const action = JSON.parse(data.actions[0].value);
     const actionID = data.actions[0].action_id;
 
+    const blocks = await this.getStatusBlocks(data, actionID);
+    await this.updateMessage(blocks, data.response_url);
+
+    return true;
     if (actionID === 'auth_button') return true;
     const articleID = action.id;
 
@@ -138,7 +165,7 @@ export class AppService {
           });
 
           if(!_userSecret?.token)
-              throw new BadRequestException('Could verify signature');
+              throw new BadRequestException('Could not verify signature');
       }
 
       const headers = {
@@ -179,6 +206,20 @@ export class AppService {
       action_id: 'auth_button',
     });
     return blocks;
+  }
+
+  private async threadMessage(message: string, redirect_uri: string, thread_ts: string) {
+    const payload = {
+      text: message,
+      thread_ts: thread_ts
+    };
+    const res = await axios.post(redirect_uri, payload);
+
+    if(!res) {
+      throw new BadRequestException('Could send status to thread');
+    }
+
+    console.log(res);
   }
 
   private async getApiStatusBlocks(data: any) {
