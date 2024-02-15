@@ -12,6 +12,9 @@ export class SlackUser {
 
     @Prop()
     channelId: string;
+
+    @Prop()
+    workspaceId: string;
   
     @Prop()
     active: boolean;

@@ -64,16 +64,6 @@ export class AppService {
       const userId = eventData.event.user;
       const channelId = eventData.event.channel;
 
-      // const res = await this.slackUserModel.create({
-      //   slackId: userId,
-      //   email: null,
-      //   channelId: channelId,
-      //   active: true,
-      // });
-
-      if (!res) {
-        throw new BadRequestException('Could not add slack user info');
-      }
 
       console.log(`User ${userId} joined channel ${channelId}`);
       return true;
