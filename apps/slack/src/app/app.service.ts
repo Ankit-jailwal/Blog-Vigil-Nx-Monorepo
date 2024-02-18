@@ -1,11 +1,9 @@
 import { SlackUser, Token } from '@article-workspace/data';
-import { ArticleStatus } from '@article-workspace/enum';
+import { ArticleStatus, MessageType } from '@article-workspace/enum';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import mongoose from 'mongoose';
-import * as crypto from 'crypto';
-import { slackRequestVerification } from '@article-workspace/authentication';
 
 @Injectable()
 export class AppService {
@@ -52,45 +50,70 @@ export class AppService {
     return blocks;
   }
 
-  private async sendThreadMessage(data: any, payload: any) {
-    const responseUrl = data.response_url;
-    const response = await axios.post(responseUrl, payload);
-    console.log(response);
-  }
-
   async handleSlackEvents(event: any) {
-    if (
-      event.event.type === 'member_joined_channel' &&
-      event.event.channel == process.env.CHANNEL_ID
-    ) {
-      const userId = event.event.user;
-      const channelId = event.event.channel;
+    const userId = event.event.user;
+    const channelId = event.event.channel;
+    const type = event.event.type;
 
-      const existingUser = this.slackUserModel.findOne({
-        slackId: event.slackId
-      });
-
-      if(existingUser)
-        
-      console.log(`User ${userId} joined channel ${channelId}`);
-      return true;
-    } else if (
-      event.event.type === 'member_left_channel' &&
-      event.event.channel == process.env.CHANNEL_ID
-    ) {
-      const userId = event.event.user;
-      const channelId = event.event.channel;
-      const res = await this.slackUserModel.findOneAndUpdate(
+    if (type === 'member_joined_channel') {
+      const user = await this.slackUserModel.findOneAndUpdate(
         { slackId: userId },
-        { active: false },
-        { new: true, upsert: false } 
+        { $set: { active: true } },
+        { new: true }
       );
 
-      if (!res) {
-        throw new BadRequestException('Could not delete slack user info');
+      if (!user) {
+        const message = [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `Hey <@${userId}>, this channel is integrated with Slack Bot which requires user permission to perform actions.`,
+            },
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Grant Access',
+                  emoji: true,
+                },
+                style: 'primary',
+                url: process.env.SLACK_OPENID_URL,
+                action_id: 'grant_access_button_click',
+              },
+            ],
+          },
+        ];
+
+        await this.sendBotMessage(MessageType.BLOCKS, userId, message);
+        return true;
       }
+      await this.sendBotMessage(
+        MessageType.TEXT,
+        userId,
+        `Hey <@${userId}>, welcome back to watchword verification channel`
+      );
+      console.log(`User ${userId} joined channel ${channelId}`);
+    } else if (
+      type === 'member_left_channel' &&
+      channelId === process.env.CHANNEL_ID
+    ) {
+      // Update the user's active status when they leave the channel
+      await this.slackUserModel.findOneAndUpdate(
+        { slackId: userId },
+        { active: false },
+        { new: true, upsert: false }
+      );
+      await this.sendBotMessage(
+        MessageType.TEXT,
+        userId,
+        `Hey <@${userId}>, you were removed from watchword verification channel.`
+      );
       console.log(`User ${userId} left channel ${channelId}`);
-      return true;
     }
 
     return true;
@@ -109,129 +132,161 @@ export class AppService {
     console.log('Unique identifier for response url', response);
   }
 
-  async testThreadTs(payload: any, req: any) {
-    // const res = await this.verifySignature(req);
-    // console.log(res);
-    // return true;
-    const data = JSON.parse(payload.payload);
-    const action = JSON.parse(data.actions[0].value);
-    const actionID = data.actions[0].action_id;
-    const button = data.actions[0];
-    await this.threadMessage(`Hey <!${data.user.id}>, testing thread message with ${data.container.action_ts}`, data.response_url, data.message.edited.ts);
-  }
-
   async handleSlackInteraction(payload: any, req: any) {
-    const verificationStatus = await slackRequestVerification(payload ,req);
-
-    if(!verificationStatus) {
-      throw new BadRequestException('Invalid request');
-    }
     const data = JSON.parse(payload.payload);
-    const action = JSON.parse(data.actions[0].value);
-    const actionID = data.actions[0].action_id;
-
-    const blocks = await this.getStatusBlocks(data, actionID);
-    await this.updateMessage(blocks, data.response_url);
-
-    return true;
-    if (actionID === 'auth_button') return true;
-    const articleID = action.id;
-
+    const messageTs = data.container.message_ts;
+    const channelId = data.container.channel_id;
     try {
-      let status;
+      const action = JSON.parse(data.actions[0].value);
+      const actionID = data.actions[0].action_id;
+      const articleID = action.id;
+      let status: ArticleStatus;
       if (actionID === 'approve_button') status = ArticleStatus.VERIFIED;
       else if (actionID === 'reject_button') status = ArticleStatus.REJECTED;
       else throw new BadRequestException('Unknown article status');
 
+      console.log(data.user.id);
       const slackUser = await this.slackUserModel.findOne({
-        slackid: data.user.id,
+        slackId: data.user.id,
       });
 
-      if(!slackUser) {
-        console.log("User not found");
-        const blocks = await this.getAuthBlocks(data);
-        await this.updateMessage(blocks, data.response_url);
+      console.log(slackUser);
+      if (!slackUser || !slackUser.active) {
+        console.log('User not found');
+        const message = [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `Hey <@${data.user.id}>, this channel is integrated with Slack Bot which requires user permission to perform actions.`,
+            },
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Grant Access',
+                  emoji: true,
+                },
+                style: 'primary',
+                url: process.env.SLACK_OPENID_URL,
+                action_id: 'grant_access_button_click',
+              },
+            ],
+          },
+        ];
+
+        // Send the message to the user
+        await this.sendBotMessage(MessageType.BLOCKS, data.user.id, message);
+        await this.sendBotMessage(
+          MessageType.TEXT,
+          channelId,
+          `<@${data.user.id}>, you are not authorized to perform this action`,
+          messageTs
+        );
         return true;
       }
-
-      let _userSecret;
-      if (slackUser.email && slackUser.active && slackUser.channelId == data.container.channel_id) {
-           const userPayload = {
-            payload: data,
-            request: req
-           }
-          _userSecret = await axios.post(`${process.env.AUTH_SERVICE}/slack/verify`, {
-            data: userPayload,
-          });
-
-          if(!_userSecret?.token)
-              throw new BadRequestException('Could not verify signature');
-      }
-
-      const headers = {
-        Authorization: `Bearer ${_userSecret.token}`,
-        'Content-Type': 'application/json',
-      };
 
       const articleStatus = {
         status: status,
       };
+      console.log(articleID);
       const res = await axios.patch(
         `${this.ARTICLE_SERVICE}/${articleID}`,
-        articleStatus,
-        { headers: headers }
+        articleStatus
       );
-      if (!res) throw new BadRequestException('Cannot update article status');
+
+      if (!res) {
+        await this.sendBotMessage(
+          MessageType.TEXT,
+          channelId,
+          `<@${data.user.id}>, could not update article`,
+          messageTs
+        );
+        return false;
+      }
 
       const blocks = await this.getStatusBlocks(data, actionID);
       await this.updateMessage(blocks, data.response_url);
+      await this.sendBotMessage(
+        MessageType.TEXT,
+        channelId,
+        `${status} by <@${data.user.id}>`,
+        messageTs
+      );
+      return true;
     } catch (error) {
-      console.log(error);
-      throw new BadRequestException('Could not update article status');
+      await this.sendBotMessage(
+        MessageType.TEXT,
+        channelId,
+        `<@${data.user.id}>, ${error}`,
+        messageTs
+      );
+      return false;
     }
-    return true;
   }
 
-  private async getAuthBlocks(data: any) {
-    const blocks = data.message.blocks;
-    blocks[3].elements.push({
-      type: 'button',
-      text: {
-        type: 'plain_text',
-        emoji: true,
-        text: 'Authorize',
-      },
-      style: 'primary',
-      url: this.SLACK_OPENID,
-      action_id: 'auth_button',
-    });
-    return blocks;
-  }
+  private async sendBotMessage(
+    type: MessageType,
+    channel_id: string,
+    message?: any,
+    ts?: string
+  ) {
+    // const accessToken = await this.getAccessTokenFromRefreshToken();
 
-  private async threadMessage(message: string, redirect_uri: string, thread_ts: string) {
-    const payload = {
-      text: message,
-      thread_ts: thread_ts
-    };
-    const res = await axios.post(redirect_uri, payload);
+    // console.log("Access token here", accessToken);
+    const CHANNEL_ID = channel_id;
 
-    if(!res) {
-      throw new BadRequestException('Could send status to thread');
+    try {
+      const postData: any = {
+        channel: CHANNEL_ID,
+      };
+
+      postData.thread_ts = ts;
+      if (type === MessageType.TEXT) {
+        postData.text = message;
+      } else if (type === MessageType.BLOCKS) {
+        postData.blocks = message;
+      }
+
+      const res = await axios.post(process.env.SLACK_MESSAGE_API, postData, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: process.env.SLACK_ACCESS_TOKEN,
+        },
+      });
+      console.log('Message sent successfully:', res.data);
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
-
-    console.log(res);
   }
 
-  private async getApiStatusBlocks(data: any) {
-    const blocks = data.message.blocks;
-    blocks.push({
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*Authorize*',
-        verbatim: true,
-        style: 'danger',
-      },
-    });
+  private async getAccessTokenFromRefreshToken(): Promise<string | null> {
+    try {
+      const clientId = process.env.SLACK_CLIENT_ID;
+      const clientSecret = process.env.SLACK_CLIENT_SECRET;
+      const refreshToken = process.env.BOT_REFRESH_TOKEN;
+      const response = await axios.post(
+        `${process.env.SLACK_OAUTH2_URI}?client_id=${clientId}&client_secret=${clientSecret}&refresh_token=${refreshToken}&grant_type=refresh_token`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data.ok) {
+        return response.data.access_token;
+      } else {
+        console.error('Error refreshing access token:', response.data.error);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error refreshing access token:', error.message);
+      return null;
+    }
   }
 }

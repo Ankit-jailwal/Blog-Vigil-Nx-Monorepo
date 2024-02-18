@@ -65,7 +65,7 @@ export class ArticleController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
   async updateStatus(
     @Param('id')
     id: string,
@@ -73,11 +73,11 @@ export class ArticleController {
     body: any,
     @Req() req,
   ): Promise<Article> {
-    const uid = req.user?.id;
+    // const uid = req.user?.id;
 
-    if(!uid) {
-      throw new BadRequestException('User not authenticated');
-    }
+    // if(!uid) {
+    //   throw new BadRequestException('User not authenticated');
+    // }
 
     return this.articleService.updateArticleStatus(id, body.status);
   }

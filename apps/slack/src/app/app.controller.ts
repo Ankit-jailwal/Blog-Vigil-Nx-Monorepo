@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { slackRequestVerification } from '@article-workspace/authentication';
 
@@ -13,17 +20,22 @@ export class AppController {
 
   @Post('button')
   onButtonClicked(@Body() body: any, @Req() req: any) {
-    const res = slackRequestVerification(body.payload, req);
+    console.log(body);
+    const res = slackRequestVerification(req);
 
     console.log(res);
-    return this.appService.handleSlackInteraction(body ,req);
+    if (!res) throw new BadGatewayException('Bad request');
+
+    return this.appService.handleSlackInteraction(body, req);
   }
 
   @Post('event')
-  onEventTriggered(@Body() payload: any , @Req() req: any) {
-      console.log("Body: ", payload);
-      
-      return payload.challenge;
-      return this.appService.handleSlackEvents(req.body);
+  async onEventTriggered(@Body() body: any, @Req() req: any) {
+    const res = slackRequestVerification(req);
+
+    if (!res) throw new BadGatewayException('Bad request');
+
+    await this.appService.handleSlackEvents(req.body);
+    return body.challenge;
   }
 }

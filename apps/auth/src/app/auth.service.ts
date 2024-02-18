@@ -19,9 +19,7 @@ export class AuthService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-    @InjectModel(Token.name)
-    private tokenModel: Model<Token>,
-    @InjectModel(Token.name)
+    @InjectModel(SlackUser.name)
     private slackUserModel: Model<SlackUser>,
     private jwtService: JwtService
   ) {}
@@ -114,29 +112,25 @@ export class AuthService {
       }
       console.log(id_token);
       const slackUser = (await jwt.decode(id_token)) as any;
-
       console.log(slackUser);
-      let user;
-      if (slackUser.email && slackUser.email_verified)
-        user = await this.userModel.findOne({ email: slackUser.email });
-
-      console.log(slackUser);
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      console.log(user);
-      const token = this.jwtService.sign({ id: user._id });
-
-      console.log('here');
-      const tokenQuery = await this.tokenModel.findOneAndUpdate(
-        { slackid: slackUser.sub },
-        { $set: { token: token } }
+      const payload = {
+          slackId: slackUser.sub,
+          email: slackUser.email,
+          channelId: '1209821',
+          workspaceId: '239dsae',
+          active: true
+      };
+      const q = await this.slackUserModel.findOneAndUpdate(
+        { slackId: payload.slackId },
+        payload,
+        { new: true, upsert: true }
       );
-      if (!tokenQuery) {
-        console.log('Token not found. Created a new one.');
+
+      console.log(q);
+      if (!q) {
+        console.log('Could not perform db operation');
       } else {
-        console.log('Token updated successfully.');
+        console.log('User added successfully');
       }
 
       return 'Authorization successful';

@@ -22,7 +22,7 @@ export class ArticleService {
   private readonly ARTICLE_SLACK_ALERT = process.env.ARTICLE_SLACK_ALERT;
   async sendSlackAlert(article: any) {
     const payload = {
-      text: "Article creation slack alert",
+      channel: process.env.CHANNEL_ID,
       blocks: [
         {
           type: "header",
@@ -93,7 +93,16 @@ export class ArticleService {
       ]
     };
     try {
-      const res = await axios.post(this.ARTICLE_SLACK_ALERT, payload);
+      const res = await axios.post(
+        process.env.SLACK_MESSAGE_API,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: process.env.SLACK_ACCESS_TOKEN,
+          },
+        }
+      );
       console.log("Response of slack webhook", res);
     } catch (error) {
       console.log("Could not send slack alert", {error});
